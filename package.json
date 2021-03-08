@@ -1,0 +1,15 @@
+{
+    "name": "com.gstein.iotscapeunity",
+    "displayName": "IoTScape Unity Plugin",
+    "version": "1.0.0",
+    "unity": "2019.4",
+    "description": "Connect Unity Objects to IoTScape",
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.0"
+    },
+    "author": {
+        "name": "Gordon Stein",
+        "email": "gstein@ltu.edu",
+        "url": "https://github.com/gsteinLTU/IoTScapeUnityPlugin"
+    }
+}
