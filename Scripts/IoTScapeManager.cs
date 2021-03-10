@@ -13,6 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace IoTScapeUnityPlugin
 {
+    [DefaultExecutionOrder(-50)]
     public class IoTScapeManager : MonoBehaviour
     {
         public static IoTScapeManager Manager;
