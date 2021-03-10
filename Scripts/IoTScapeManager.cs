@@ -16,7 +16,8 @@ namespace IoTScapeUnityPlugin
     public class IoTScapeManager : MonoBehaviour
     {
         public static IoTScapeManager Manager;
-        public IPAddress Host = IPAddress.Parse("52.73.65.98");
+        public string Host = "52.73.65.98";
+        private IPAddress hostIpAddress;
         public ushort Port = 1975;
 
         private Socket _socket;
@@ -25,13 +26,16 @@ namespace IoTScapeUnityPlugin
         private int lastid = 0;
 
         private Dictionary<string, IoTScapeObject> objects = new Dictionary<string, IoTScapeObject>();
+        private Dictionary<string, int> lastIDs = new Dictionary<string, int>();
+
         private EndPoint hostEndPoint;
 
         // Start is called before the first frame update
         void Start()
         {
-            hostEndPoint = new IPEndPoint(Host, Port);
-            Debug.Log(hostEndPoint);
+            hostIpAddress = IPAddress.Parse(Host);
+            hostEndPoint = new IPEndPoint(hostIpAddress, Port);
+
             idprefix = Random.Range(0, 0x10000);
             Manager = this;
 
@@ -51,10 +55,9 @@ namespace IoTScapeUnityPlugin
         void announce(IoTScapeObject o)
         {
             string serviceJson = JsonConvert.SerializeObject(new Dictionary<string, IoTScapeServiceDefinition>(){{o.ServiceName, o.Definition}});
-            Debug.Log($"Announcing service {o.ServiceName}");
-            Debug.Log(serviceJson);
+            Debug.Log($"Announcing service {o.ServiceName} from object with ID {o.Definition.id}");
+
             _socket.SendTo(serviceJson.Select(c => (byte) c).ToArray(), SocketFlags.None, hostEndPoint);
-            //_socket.SendToAsync(new ArraySegment<byte>(writer.ToString().Select(c => (byte) c).ToArray()), SocketFlags.None, hostEndPoint);
         }
 
         /// <summary>
@@ -71,8 +74,36 @@ namespace IoTScapeUnityPlugin
         /// <param name="o">IoTScapeObject to register</param>
         public void Register(IoTScapeObject o)
         {
-            o.Definition.id = idprefix.ToString("x4") + (lastid++).ToString("x4");
-            objects.Add(o.Definition.id, o);
+            int newID;
+            string newIDString;
+
+            // Allow device types to have their own numeric ids
+            if (o.DeviceTypeID.Length > 1)
+            {
+                if (!lastIDs.ContainsKey(o.DeviceTypeID))
+                {
+                    lastIDs.Add(o.DeviceTypeID, 0);
+                }
+
+                newID = lastIDs[o.DeviceTypeID]++;
+            }
+            else
+            {
+                newID = lastid++;
+            }
+
+            // Assign IDs
+            if (o.DeviceTypeID != "")
+            {
+                newIDString = idprefix.ToString("x4") + "_" + o.DeviceTypeID + "_" + (newID).ToString("x4");
+            }
+            else
+            {
+                newIDString = idprefix.ToString("x4") + (newID).ToString("x4");
+            }
+
+            o.Definition.id = newIDString;
+            objects.Add(newIDString, o);
             announce(o);
         }
 
@@ -97,9 +128,9 @@ namespace IoTScapeUnityPlugin
                     var device = objects[request.device];
 
                     // Call function if valid
-                    if (device.RegisteredMethods.ContainsKey(request.function))
+                    if (device.Methods.ContainsKey(request.function))
                     {
-                        string[] result = device.RegisteredMethods[request.function](request.ParamsList.ToArray());
+                        string[] result = device.Methods[request.function].Invoke(request.ParamsList.ToArray());
 
                         IoTScapeResponse response = new IoTScapeResponse
                         {
@@ -118,15 +149,6 @@ namespace IoTScapeUnityPlugin
                 }
             }
         }
-    }
-
-    [Serializable]
-    public class IoTScapeServiceDefinition
-    {
-        public string id;
-        public IoTScapeServiceDescription service;
-        public Dictionary<string,IoTScapeMethodDescription> methods = new Dictionary<string, IoTScapeMethodDescription>();
-        public Dictionary<string, IoTScapeEventDescription> events = new Dictionary<string, IoTScapeEventDescription>();
     }
 
     public class IoTScapeEventDescription
