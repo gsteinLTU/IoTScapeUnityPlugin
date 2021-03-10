@@ -66,12 +66,15 @@ namespace IoTScapeUnityPlugin
         
         public void OnValidate()
         {
-            // Populate Methods list
-            foreach (var method in Definition.methods.Keys)
+            if (Definition != null)
             {
-                if (!Methods.ContainsKey(method))
+                // Populate Methods list
+                foreach (var method in Definition.methods.Keys)
                 {
-                    Methods.Add(method, new IoTScapeCommandCallback());
+                    if (!Methods.ContainsKey(method))
+                    {
+                        Methods.Add(method, new IoTScapeCommandCallback());
+                    }
                 }
             }
         }
