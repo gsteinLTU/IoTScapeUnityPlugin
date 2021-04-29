@@ -1,8 +1,8 @@
 {
     "name": "com.gstein.iotscapeunity",
     "displayName": "IoTScape Unity Plugin",
-    "version": "2.0.3",
-    "unity": "2020.2",
+    "version": "2.0.4",
+    "unity": "2020.3",
     "description": "Connect Unity Objects to IoTScape",
     "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
