@@ -104,7 +104,7 @@ namespace IoTScapeUnityPlugin
             }
 
             o.Definition.id = newIDString;
-            objects.Add(newIDString, o);
+            objects.Add(o.ServiceName + ":" + newIDString, o);
             announce(o);
         }
 
@@ -124,9 +124,9 @@ namespace IoTScapeUnityPlugin
                 Debug.Log(request);
 
                 // Verify device exists
-                if (objects.ContainsKey(request.device))
+                if (objects.ContainsKey(request.service + ":" + request.device))
                 {
-                    var device = objects[request.device];
+                    var device = objects[request.service + ":" + request.device];
 
                     // Call function if valid
                     if (device.Methods.ContainsKey(request.function))
