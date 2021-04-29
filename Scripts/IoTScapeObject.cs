@@ -36,7 +36,7 @@ namespace IoTScapeUnityPlugin
                 };
             }
 
-            Definition = Object.Instantiate(Definition);
+            Definition = Instantiate(Definition);
             Definition.id = "";
 
             // Register default heartbeat

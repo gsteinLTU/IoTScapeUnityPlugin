@@ -78,20 +78,20 @@ namespace IoTScapeUnityPlugin
             int newID;
             string newIDString;
 
+            string fullDeviceType = o.ServiceName;
+
             // Allow device types to have their own numeric ids
             if (o.DeviceTypeID.Length > 1)
             {
-                if (!lastIDs.ContainsKey(o.DeviceTypeID))
-                {
-                    lastIDs.Add(o.DeviceTypeID, 0);
-                }
+                fullDeviceType += ":" + o.DeviceTypeID;
+            }
 
-                newID = lastIDs[o.DeviceTypeID]++;
-            }
-            else
+            if (!lastIDs.ContainsKey(fullDeviceType))
             {
-                newID = lastid++;
+                lastIDs.Add(fullDeviceType, 0);
             }
+
+            newID = lastIDs[fullDeviceType]++;
 
             // Assign IDs
             if (o.DeviceTypeID != "")
