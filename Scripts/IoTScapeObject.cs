@@ -68,6 +68,12 @@ namespace IoTScapeUnityPlugin
         {
             if (Definition != null)
             {
+                // Replace default name with ID of service definition
+                if (Definition != null && (ServiceName == "" || ServiceName == "IoTScapeService"))
+                {
+                    ServiceName = Definition.name;
+                }
+
                 // Populate Methods list
                 foreach (var method in Definition.methods.Keys)
                 {
