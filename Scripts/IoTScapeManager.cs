@@ -1,11 +1,12 @@
-﻿using System;
+﻿using System.Diagnostics;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Timers;
+using System.Threading;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -30,6 +31,9 @@ namespace IoTScapeUnityPlugin
         private Dictionary<string, int> lastIDs = new Dictionary<string, int>();
 
         private EndPoint hostEndPoint;
+        // Wait time in seconds.
+        private float waitTime = 30.0f;
+        private float timer = 0.0f;
 
         // Start is called before the first frame update
         void Start()
@@ -42,11 +46,6 @@ namespace IoTScapeUnityPlugin
 
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             _socket.Bind(new IPEndPoint(IPAddress.Any, 0));
-
-            // Reannounce services occasionally
-            Timer reAnnounceTimer = new Timer(60 * 1000);
-            reAnnounceTimer.Elapsed += (sender, args) => announceAll();
-            reAnnounceTimer.Start();
         }
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace IoTScapeUnityPlugin
         void announce(IoTScapeObject o)
         {
             string serviceJson = JsonConvert.SerializeObject(new Dictionary<string, IoTScapeServiceDefinition>(){{o.ServiceName, o.Definition}});
-            Debug.Log($"Announcing service {o.ServiceName} from object with ID {o.Definition.id}");
+            UnityEngine.Debug.Log($"Announcing service {o.ServiceName} from object with ID {o.Definition.id}");
 
             _socket.SendTo(serviceJson.Select(c => (byte) c).ToArray(), SocketFlags.None, hostEndPoint);
         }
@@ -121,7 +120,7 @@ namespace IoTScapeUnityPlugin
 
                 var json = JsonSerializer.Create();
                 IoTScapeRequest request = json.Deserialize<IoTScapeRequest>(new JsonTextReader(new StringReader(incomingString)));
-                Debug.Log(request);
+                UnityEngine.Debug.Log(request);
 
                 // Verify device exists
                 if (objects.ContainsKey(request.service + ":" + request.device))
@@ -148,6 +147,12 @@ namespace IoTScapeUnityPlugin
                         _socket.SendTo(responseJson.Select(c => (byte)c).ToArray(), SocketFlags.None, hostEndPoint);
                     }
                 }
+            }
+            timer += Time.deltaTime;
+            if (timer > waitTime)
+            {
+                announceAll();
+                timer = 0.0f;
             }
         }
     }
