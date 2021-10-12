@@ -76,6 +76,7 @@ namespace IoTScapeUnityPlugin
         {
             int newID;
             string newIDString;
+            string deviceIDPrefix = o.IDOverride.Length > 0 ? o.IDOverride : idprefix.ToString("x4");
 
             string fullDeviceType = o.ServiceName;
 
@@ -95,11 +96,11 @@ namespace IoTScapeUnityPlugin
             // Assign IDs
             if (o.DeviceTypeID != "")
             {
-                newIDString = idprefix.ToString("x4") + "_" + o.DeviceTypeID + "_" + (newID).ToString("x4");
+                newIDString = deviceIDPrefix + "_" + o.DeviceTypeID + "_" + (newID).ToString("x4");
             }
             else
             {
-                newIDString = idprefix.ToString("x4") + (newID).ToString("x4");
+                newIDString = deviceIDPrefix + (newID).ToString("x4");
             }
 
             o.Definition.id = newIDString;

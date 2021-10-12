@@ -14,7 +14,12 @@ namespace IoTScapeUnityPlugin
 
         public string DeviceTypeID = "";
 
+        public string IDOverride = "";
+
         public GenericDictionary<string, IoTScapeCommandCallback> Methods;
+
+        [Tooltip("Set to false to prevent automatically registering the object with the IoTScapeManager")]
+        public bool ShouldRegister = true;
 
         // Start is called before the first frame update
         void Start()
@@ -27,7 +32,7 @@ namespace IoTScapeUnityPlugin
                     service = new IoTScapeServiceDescription()
                     {
                         contact = "gstein@ltu.edu",
-                        description = "A Unity light",
+                        description = "A Unity service",
                         externalDocumentation = "",
                         license = "n/a",
                         termsOfService = "n/a",
