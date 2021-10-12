@@ -18,6 +18,8 @@ namespace IoTScapeUnityPlugin
 
         public GenericDictionary<string, IoTScapeCommandCallback> Methods;
 
+        internal string ID;
+
         [Tooltip("Set to false to prevent automatically registering the object with the IoTScapeManager")]
         public bool ShouldRegister = true;
 
@@ -64,7 +66,7 @@ namespace IoTScapeUnityPlugin
         {
             if (!registered && ServiceName.Trim().Length > 0)
             {
-                IoTScapeManager.Manager.Register(this);
+                ID = IoTScapeManager.Manager.Register(this);
                 registered = true;
             }
         }
@@ -88,6 +90,37 @@ namespace IoTScapeUnityPlugin
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Send an event for this device to the server
+        /// </summary>
+        /// <param name="eventType">Type of event, should be in service definition</param>
+        /// <param name="args">Data to be passed with event</param>
+        public void SendEvent(string eventType, string[] args)
+        {
+            IoTScapeResponse eventResponse = new IoTScapeResponse
+            {
+                id = ID,
+                service = ServiceName,
+                request = "",
+                EventResponse = new IoTScapeEventResponse()
+                {
+                    type = eventType,
+                    args = args
+                }
+            };
+
+            IoTScapeManager.Manager.SendToServer(eventResponse);
+        }
+
+        /// <summary>
+        /// Send an event with no arguments
+        /// </summary>
+        /// <param name="EventType">Type of event, should be in service definition</param>
+        public void SendEvent(string EventType)
+        {
+            SendEvent(EventType, new string[]{});
         }
     }
 

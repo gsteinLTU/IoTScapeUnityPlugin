@@ -10,6 +10,7 @@ using System.Threading;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 namespace IoTScapeUnityPlugin
@@ -72,7 +73,8 @@ namespace IoTScapeUnityPlugin
         /// Register an IoTScapeObject
         /// </summary>
         /// <param name="o">IoTScapeObject to register</param>
-        public void Register(IoTScapeObject o)
+        /// <returns>ID of IoTScapeObject</returns>
+        public string Register(IoTScapeObject o)
         {
             int newID;
             string newIDString;
@@ -106,6 +108,8 @@ namespace IoTScapeUnityPlugin
             o.Definition.id = newIDString;
             objects.Add(o.ServiceName + ":" + newIDString, o);
             announce(o);
+
+            return newIDString;
         }
 
         // Update is called once per frame
@@ -132,32 +136,55 @@ namespace IoTScapeUnityPlugin
                     if (device.Methods.ContainsKey(request.function))
                     {
                         string[] result = device.Methods[request.function].Invoke(request.ParamsList.ToArray());
-
-                        IoTScapeResponse response = new IoTScapeResponse
-                        {
-                            id = request.device,
-                            request = request.id,
-                            service = request.service,
-                            response = (result ?? new string[]{}).ToList()
-                        };
-
-                        // Send response
-                        string responseJson = JsonConvert.SerializeObject(response,
-                            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
-
-                        _socket.SendTo(responseJson.Select(c => (byte)c).ToArray(), SocketFlags.None, hostEndPoint);
+                        SendResponse(request, result);
                     }
                 }
             }
+
             timer += Time.deltaTime;
+
             if (timer > waitTime)
             {
                 announceAll();
                 timer = 0.0f;
             }
         }
+
+        /// <summary>
+        /// Generate and send a response with a result
+        /// </summary>
+        /// <param name="request">Request to respond to</param>
+        /// <param name="result">Result to send to server for request's response</param>
+        private void SendResponse(IoTScapeRequest request, string[] result)
+        {
+            IoTScapeResponse response = new IoTScapeResponse
+            {
+                id = request.device,
+                request = request.id,
+                service = request.service,
+                response = (result ?? new string[] { }).ToList()
+            };
+
+            SendToServer(response);
+        }
+
+        /// <summary>
+        /// Send an IoTScapeResponse object to the server as JSON
+        /// </summary>
+        /// <param name="response">Response to send to server</param>
+        internal void SendToServer(IoTScapeResponse response)
+        {
+            // Send response
+            string responseJson = JsonConvert.SerializeObject(response,
+                new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            Debug.Log(responseJson);
+
+            _socket.SendTo(responseJson.Select(c => (byte)c).ToArray(), SocketFlags.None, hostEndPoint);
+        }
     }
 
+    [Serializable]
     public class IoTScapeEventDescription
     {
         [JsonProperty(PropertyName = "params")]
@@ -237,6 +264,6 @@ namespace IoTScapeUnityPlugin
     public class IoTScapeEventResponse
     {
         public string type;
-        public string args;
+        public string[] args;
     }
 }
