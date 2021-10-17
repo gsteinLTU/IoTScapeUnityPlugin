@@ -83,6 +83,11 @@ namespace IoTScapeUnityPlugin
             string fullDeviceType = o.ServiceName;
 
             // Allow device types to have their own numeric ids
+            if (o.IDOverride.Length > 0)
+            {
+                fullDeviceType += ":" + o.IDOverride;
+            }
+            
             if (o.DeviceTypeID.Length > 1)
             {
                 fullDeviceType += ":" + o.DeviceTypeID;
