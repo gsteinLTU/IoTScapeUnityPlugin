@@ -82,12 +82,13 @@ namespace IoTScapeUnityPlugin
 
             string fullDeviceType = o.ServiceName;
 
-            // Allow device types to have their own numeric ids
+            // Allow custom IDs to have their own numeric ids
             if (o.IDOverride.Length > 0)
             {
                 fullDeviceType += ":" + o.IDOverride;
             }
             
+            // Allow device types to have their own numeric ids
             if (o.DeviceTypeID.Length > 1)
             {
                 fullDeviceType += ":" + o.DeviceTypeID;
@@ -101,13 +102,16 @@ namespace IoTScapeUnityPlugin
             newID = lastIDs[fullDeviceType]++;
 
             // Assign IDs
+            newIDString = deviceIDPrefix;
+            
             if (o.DeviceTypeID != "")
             {
-                newIDString = deviceIDPrefix + "_" + o.DeviceTypeID + "_" + (newID).ToString("x4");
+                newIDString += "_" + o.DeviceTypeID;
             }
-            else
-            {
-                newIDString = deviceIDPrefix + (newID).ToString("x4");
+            
+            // Custom ID with no collision skips numeric suffix
+            if(!(o.IDOverride.Length > 0 && newID == 0)){
+                newIDString += "_" + (newID).ToString("x4");
             }
 
             o.Definition.id = newIDString;
