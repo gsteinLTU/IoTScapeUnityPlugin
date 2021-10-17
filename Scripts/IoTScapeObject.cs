@@ -64,7 +64,7 @@ namespace IoTScapeUnityPlugin
         // Update is called once per frame
         void Update()
         {
-            if (!registered && ServiceName.Trim().Length > 0)
+            if (!registered && ShouldRegister && ServiceName.Trim().Length > 0)
             {
                 ID = IoTScapeManager.Manager.Register(this);
                 registered = true;
